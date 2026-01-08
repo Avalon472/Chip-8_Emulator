@@ -2,6 +2,15 @@
 #include <iostream>
 #include <random>
 
+/*TODO: 
+Fleshout opcode descriptions
+Add default cases for switches
+Add timer updates to decrement delay and sound timers
+Add fontset
+Add function for loading ROMs into memory
+Wrap values into Chip8 class object
+*/
+
 uint8_t memory[0xFFF]; //4096 bytes of memory, or 0xFFF bytes
 uint8_t V[16]; //Registers
 uint16_t I; //Address Register
