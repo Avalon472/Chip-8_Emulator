@@ -4,12 +4,29 @@
 
 /*TODO: 
 Fleshout opcode descriptions
-Add default cases for switches
-Add timer updates to decrement delay and sound timers
-Add fontset
 Add function for loading ROMs into memory
 Wrap values into Chip8 class object
 */
+
+uint8_t fontset[80] =
+{
+	0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+	0x20, 0x60, 0x20, 0x20, 0x70, // 1
+	0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+	0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+	0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+	0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+	0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+	0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+	0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+	0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+	0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+	0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+	0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+	0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+	0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+	0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+};
 
 uint8_t memory[0xFFF]; //4096 bytes of memory, or 0xFFF bytes
 uint8_t V[16]; //Registers
@@ -49,6 +66,10 @@ void init(){
     }
 }
 
+void LoadROM(const char *filePath){
+    std::cout << "Loading ROM: " << filePath << std::endl;
+}
+
 void FetchHandleOpcode(){
     opcode = memory[PC] << 8 | memory[PC+1]; //Fetching both parts of opcode and combining them with | (or) operation
     
@@ -66,6 +87,8 @@ void FetchHandleOpcode(){
                     PC = stack[SP];
                     SP--;
                     break;
+                default:
+                    std::cout << "Unknown opcode: " << opcode << std::endl;
             }
             break;
         
@@ -177,7 +200,8 @@ void FetchHandleOpcode(){
                     V[X] = V[X] << 1;
                     PC += 2;
                     break;
-
+                default:
+                    std::cout << "Unknown opcode: " << opcode << std::endl;
             }
             break;
 
@@ -251,6 +275,8 @@ void FetchHandleOpcode(){
                     else
                         PC += 2;
                     break;
+                default:
+                    std::cout << "Unknown opcode: " << opcode << std::endl;
             }
             break;
 
@@ -273,12 +299,13 @@ void FetchHandleOpcode(){
                                     V[X] = i;
                                 }
                             }
-
                             if(!keyPressed)
                                 return;
-
                             PC += 2;
                             break;
+
+                        default:
+                            std::cout << "Unknown opcode: " << opcode << std::endl;
                     }    
                 case 0x0010: //F010
                     switch(opcode & 0x000F){
@@ -300,6 +327,8 @@ void FetchHandleOpcode(){
                             I += V[X];
                             PC += 2;
                             break;
+                        default:
+                            std::cout << "Unknown opcode: " << opcode << std::endl;
                     }
                     break;
 
@@ -334,7 +363,21 @@ void FetchHandleOpcode(){
                     //I += 1;
                     PC += 2;
                     break;
+                default:
+                    std::cout << "Unknown opcode: " << opcode << std::endl;
             }
+            default:
+                std::cout << "Unknown opcode: " << opcode << std::endl;
+    }
+
+    if(delayTimer > 0){
+        delayTimer--;
+    }
+
+    if(soundTimer > 0){
+        if(soundTimer == 1)
+            //play sound
+        soundTimer--;
     }
 }
 
