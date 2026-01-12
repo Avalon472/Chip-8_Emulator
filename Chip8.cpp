@@ -3,9 +3,10 @@
 #include <fstream>
 #include <random>
 
+#include "Chip8.h"
 /*TODO: 
 Fleshout opcode descriptions
-Wrap values into Chip8 class object
+Clean up comments
 */
 
 uint8_t fontset[80] =
@@ -28,21 +29,7 @@ uint8_t fontset[80] =
 	0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
-uint8_t memory[0xFFF]; //4096 bytes of memory, or 0xFFF bytes
-uint8_t V[16]; //Registers
-uint16_t I; //Address Register
-uint16_t PC; //Program Counter
-uint16_t opcode; //Opcode
 
-uint16_t stack[16]; //Address Stack
-uint16_t SP; //Stack Pointer
-
-uint8_t pixels[64][32]; //64x32 Screen with
-uint8_t delayTimer;
-uint8_t soundTimer;
-
-uint8_t key[16];
-bool drawFlag;
 
 /*
 Memory Allocation:
@@ -52,7 +39,7 @@ Memory Allocation:
 */
 
 
-void init(){
+void Chip8::init(){
     I = 0;
     PC = 0x200; //Starting at 0x200
 
@@ -85,7 +72,10 @@ void init(){
 
 }
 
-void LoadROM(const char *filePath){
+bool Chip8::LoadROM(const char *filePath){
+    bool status;
+    init();
+
     //Open file and start at end of file
     std::cout << "Loading ROM: " << filePath << std::endl;
     std::ifstream file(filePath, std::ios::binary | std::ios::ate);
@@ -108,17 +98,22 @@ void LoadROM(const char *filePath){
                 memory[i+0x200] = buffer[i];
             }
             std::cout<<"File read successfully" << std::endl;
+            status = true;
         }
         else{
             std::cout << "File is too large" << std::endl;
+            status = false;
         }
 
         delete[] buffer;
-        return;
     }
+    else{
+        status = false;
+    }
+    return status;
 }
 
-void FetchHandleOpcode(){
+void Chip8::executeCycle(){
     opcode = memory[PC] << 8 | memory[PC+1]; //Fetching both parts of opcode and combining them with | (or) operation
     
     switch (opcode & 0xF000){
