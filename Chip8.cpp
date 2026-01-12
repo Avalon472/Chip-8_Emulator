@@ -1,10 +1,10 @@
 #include <stdint.h>
 #include <iostream>
+#include <fstream>
 #include <random>
 
 /*TODO: 
 Fleshout opcode descriptions
-Add function for loading ROMs into memory
 Wrap values into Chip8 class object
 */
 
@@ -55,19 +55,67 @@ Memory Allocation:
 void init(){
     I = 0;
     PC = 0x200; //Starting at 0x200
+
+    //Clear registers and stack
     for(int i = 0; i<sizeof(V); i++){
         V[i] = 0;
         stack[i] = 0;
     }
     opcode = 0;
     SP = 0;
+
+    //Clear screen pixel array
     for(int i = 0; i< sizeof(pixels)*sizeof(pixels[0]); i++){
-        pixels[i/0][i%(sizeof(pixels[0]))] = 0;
+        pixels[i%sizeof(pixels)][i%(sizeof(pixels[0]))] = 0;
     }
+
+    //Clear memory
+    for(int i = 0; i<sizeof(memory); i++){
+        memory[i] = 0;
+    }
+
+    //Load fontset into memory
+    for(int i = 0; i<sizeof(fontset); i++){
+        //Some emulators start at 50, but 0 is acceptable
+        memory[i] = fontset[i];
+    }
+
+    //Seed random value generator using time at init
+    srand(time(nullptr));
+
 }
 
 void LoadROM(const char *filePath){
+    //Open file and start at end of file
     std::cout << "Loading ROM: " << filePath << std::endl;
+    std::ifstream file(filePath, std::ios::binary | std::ios::ate);
+
+    if(file.is_open()){
+        //Find file size by checking current position relative to start
+        std::streampos size = file.tellg();
+        //Allocate space to a buffer that's the size of the file
+        char* buffer = new char[size];
+
+        //Set file pointer to beginning with offset of 0 bits, dump file contents into buffer
+        file.seekg(0, std::ios::beg);
+        file.read(buffer, size);
+        file.close();
+
+        //Check that Chip8 RAM is large enough for ROM
+        if(sizeof(memory)-0x200 > size){
+            //Load file into memory
+            for(int i = 0; i<size; i++){
+                memory[i+0x200] = buffer[i];
+            }
+            std::cout<<"File read successfully" << std::endl;
+        }
+        else{
+            std::cout << "File is too large" << std::endl;
+        }
+
+        delete[] buffer;
+        return;
+    }
 }
 
 void FetchHandleOpcode(){
