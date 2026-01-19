@@ -14,13 +14,13 @@ class Chip8{
         uint16_t stack[16]; //Address Stack
         uint16_t SP; //Stack Pointer
 
-        uint8_t pixels[64][32]; //64x32 Screen with
         uint8_t delayTimer;
         uint8_t soundTimer;
         
         void init();
 
     public:
+        uint8_t pixels[64][32]; //64x32 Screen with
         uint8_t key[16];
         bool drawFlag;
 

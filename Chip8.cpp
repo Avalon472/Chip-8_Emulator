@@ -44,7 +44,7 @@ void Chip8::init(){
     PC = 0x200; //Starting at 0x200
 
     //Clear registers and stack
-    for(int i = 0; i<sizeof(V); i++){
+    for(int i = 0; i<16; i++){
         V[i] = 0;
         stack[i] = 0;
     }
@@ -52,17 +52,17 @@ void Chip8::init(){
     SP = 0;
 
     //Clear screen pixel array
-    for(int i = 0; i< sizeof(pixels)*sizeof(pixels[0]); i++){
-        pixels[i%sizeof(pixels)][i%(sizeof(pixels[0]))] = 0;
+    for(int i = 0; i< 64*32; i++){
+        pixels[i%64][i%32] = 0;
     }
 
     //Clear memory
-    for(int i = 0; i<sizeof(memory); i++){
+    for(int i = 0; i<0xFFF; i++){
         memory[i] = 0;
     }
 
     //Load fontset into memory
-    for(int i = 0; i<sizeof(fontset); i++){
+    for(int i = 0; i<80; i++){
         //Some emulators start at 50, but 0 is acceptable
         memory[i] = fontset[i];
     }
@@ -92,7 +92,7 @@ bool Chip8::LoadROM(const char *filePath){
         file.close();
 
         //Check that Chip8 RAM is large enough for ROM
-        if(sizeof(memory)-0x200 > size){
+        if(0xFFF-0x200 > size){
             //Load file into memory
             for(int i = 0; i<size; i++){
                 memory[i+0x200] = buffer[i];
@@ -121,8 +121,8 @@ void Chip8::executeCycle(){
         case 0x0000: //Opcode starts with 0
             switch (opcode & 0x000F){
                 case 0x0000: //Opcode 00E0, display clear
-                    for(int i = 0; i< sizeof(pixels)*sizeof(pixels[0]); i++){
-                        pixels[i/0][i%(sizeof(pixels[0]))] = 0;
+                    for(int i = 0; i< 64*32; i++){
+                        pixels[i%64][i%32] = 0;
                     }
                     PC += 2; //Move to next instruction
                     break;
@@ -336,7 +336,7 @@ void Chip8::executeCycle(){
 
                             bool keyPressed = false;
                             //Iterate through key array to see if any were flagged as being pressed
-                            for(int i = 0; i< sizeof(key[0]); i++){
+                            for(int i = 0; i< 16; i++){
                                 if(key[i] != 0){
                                     keyPressed = true;
                                     V[X] = i;
