@@ -38,6 +38,16 @@ Memory Allocation:
 0x200-0xFFF - Program RAM
 */
 
+//Constructor
+Chip8::Chip8(){
+    init();
+    drawFlag = false;
+}
+
+//Destructor
+Chip8::~Chip8(){}
+
+
 
 void Chip8::init(){
     I = 0;
@@ -118,163 +128,165 @@ void Chip8::executeCycle(){
     
     switch (opcode & 0xF000){
 
-        case 0x0000: //Opcode starts with 0
+        case 0x0000: { //Opcode starts with 0
             switch (opcode & 0x000F){
-                case 0x0000: //Opcode 00E0, display clear
+                case 0x0000: { //Opcode 00E0, display clear
                     for(int i = 0; i< 64*32; i++){
                         pixels[i%64][i%32] = 0;
                     }
                     PC += 2; //Move to next instruction
-                    break;
-                case 0x000E: //Opcode 00EE, return
-                    PC = stack[SP];
+                } break;
+                case 0x000E: { //Opcode 00EE, return
                     SP--;
-                    break;
-                default:
-                    std::cout << "Unknown opcode: " << opcode << std::endl;
+                    PC = stack[SP];
+                } break;
+                default: {
+                    printf("\nUnknown op code: %.4X\n", opcode);
+                } exit(3);
             }
-            break;
-        
-        case 0x1000: //Opcode 1NNN, goto NNN
+        } break;
+
+        case 0x1000: { //Opcode 1NNN, goto NNN
             int address = opcode & 0x0FFF; //Get last three digits of opcode to find jump destination
             PC = address;
-            break;
-        
-        case 0x2000: //Opcode 2NNN, *(0xNNN)() (call subroutine at NNN)
+        } break;
+
+        case 0x2000: { //Opcode 2NNN, *(0xNNN)() (call subroutine at NNN)
             stack[SP] = PC + 2;//Moving to next instruction to store it
             SP++;
             PC = opcode & 0x0FFF;
-            break;
+        } break;
             
-        case 0x3000: //Opcode 3XNN, if (Vx == NN)
+        case 0x3000: { //Opcode 3XNN, if (Vx == NN)
             int X = (opcode & 0x0F00) >> 8;
             if(V[X] == (opcode & 0x00FF))
                 PC += 4;
             else
                 PC += 2;
-            break;
+        } break;
 
-        case 0x4000: //Opcode 4XNN, if (Vx != NN)
+        case 0x4000: { //Opcode 4XNN, if (Vx != NN)
             int X = (opcode & 0x0F00) >> 8;
             if(V[X] != (opcode & 0x00FF))
                 PC += 4;
             else
                 PC += 2;
-            break;
+        } break;
 
-        case 0x5000: //Opcode 5XY0, if (Vx == Vy)
+        case 0x5000: { //Opcode 5XY0, if (Vx == Vy)
             int X = (opcode & 0x0F00) >> 8;
             int Y = (opcode & 0x00F0) >> 4;
             if(V[X] == V[Y])
                 PC += 4;
             else
                 PC += 2;
-            break;
+        } break;
 
-        case 0x6000: //Opcode 6XNN, Vx = NN
+        case 0x6000: { //Opcode 6XNN, Vx = NN
             int X = (opcode & 0x0F00) >> 8;
             V[X] = (opcode & 0x00FF);
             PC += 2;
-            break;
+        } break;
 
-        case 0x7000: //Opcode 7XNN, Vx += NN
+        case 0x7000: { //Opcode 7XNN, Vx += NN
             int X = (opcode & 0x0F00) >> 8;
             V[X] += (opcode & 0x00FF);
             PC += 2;
-            break;
+        } break;
 
-        case 0x8000: //Opcode starts with 8
+        case 0x8000: { //Opcode starts with 8
             switch (opcode & 0x000F){
-                case 0x0000: //Opcode 8XY0, Vx = Vy
+                case 0x0000: { //Opcode 8XY0, Vx = Vy
                     int X = (opcode & 0x0F00) >> 8;
                     int Y = (opcode & 0x00F0) >> 4;
                     V[X] = V[Y];
                     PC += 2;
-                    break;
-                case 0x0001: //Opcode 8XY1, Vx |= Vy
+                } break;
+                case 0x0001: { //Opcode 8XY1, Vx |= Vy
                     int X = (opcode & 0x0F00) >> 8;
                     int Y = (opcode & 0x00F0) >> 4;
                     V[X] |= V[Y];
                     PC += 2;
-                    break;
-                case 0x0002: //Opcode 8XY2, Vx &= Vy
+                } break;
+                case 0x0002: { //Opcode 8XY2, Vx &= Vy
                     int X = (opcode & 0x0F00) >> 8;
                     int Y = (opcode & 0x00F0) >> 4;
                     V[X] &= V[Y];
                     PC += 2;
-                    break;
-                case 0x0003: //Opcode 8XY3, Vx ^= Vy
+                } break;
+                case 0x0003: { //Opcode 8XY3, Vx ^= Vy
                     int X = (opcode & 0x0F00) >> 8;
                     int Y = (opcode & 0x00F0) >> 4;
                     V[X] ^= V[Y];
                     PC += 2;
-                    break;
-                case 0x0004: //Opcode 8XY4, Vx += Vy
+                } break;
+                case 0x0004: { //Opcode 8XY4, Vx += Vy
                     int X = (opcode & 0x0F00) >> 8;
                     int Y = (opcode & 0x00F0) >> 4;
                     int sum = V[X] + V[Y];
                     V[0xF] = (sum > 0xFF) ? 1 : 0;
                     V[X] = sum & 0xFF;
                     PC += 2;
-                    break;
-                case 0x0005: //Opcode 8XY5, Vx -= Vy
+                } break;
+                case 0x0005: { //Opcode 8XY5, Vx -= Vy
                     int X = (opcode & 0x0F00) >> 8;
                     int Y = (opcode & 0x00F0) >> 4;
                     V[0xF] = (V[X] > V[Y])? 1 : 0;
                     V[X] -= V[Y];
                     PC += 2;
-                    break;
-                case 0x0006: //Opcode 8XY6, Vx >>= 1
+                } break;
+                case 0x0006: { //Opcode 8XY6, Vx >>= 1
                     int X = (opcode & 0x0F00) >> 8;
                     V[0xF] = V[X] & 0x1;
                     V[X] = V[X] >> 1;
                     PC += 2;
-                    break;
-                case 0x0007: //Opcode 8XY7, Vx = Vy - Vx
+                } break;
+                case 0x0007: { //Opcode 8XY7, Vx = Vy - Vx
                     int X = (opcode & 0x0F00) >> 8;
                     int Y = (opcode & 0x00F0) >> 4;
                     V[0xF] = (V[Y] > V[X])? 1 : 0;
                     V[X] = V[Y] - V[X];
                     PC += 2;
-                    break;
-                case 0x000E: //Opcode 8XYE, Vx <<= 1
+                } break;
+                case 0x000E: { //Opcode 8XYE, Vx <<= 1
                     int X = (opcode & 0x0F00) >> 8;
                     V[0xF] = V[X] >> 7;
                     V[X] = V[X] << 1;
                     PC += 2;
-                    break;
-                default:
-                    std::cout << "Unknown opcode: " << opcode << std::endl;
+                } break;
+                default: {
+                    printf("\nUnknown op code: %.4X\n", opcode);
+                } exit(3);
             }
-            break;
+        } break;
 
-        case 0x9000: //Opcode 9XY0, if(Vx != Vy)
+        case 0x9000: { //Opcode 9XY0, if(Vx != Vy)
             int X = (opcode & 0x0F00) >> 8;
             int Y = (opcode & 0x00F0) >> 4;
             if(V[X] != V[Y])
                 PC += 4;
             else
                 PC += 2;
-            break;
+        } break;
 
-        case 0xA000: //Opcode ANNN, I = NNN
+        case 0xA000: { //Opcode ANNN, I = NNN
             int address = opcode & 0x0FFF;
             I = address;
             PC += 2;
-            break;
+        } break;
 
-        case 0xB000: //Opcode BNNN, PC = V0 + NNN
+        case 0xB000: { //Opcode BNNN, PC = V0 + NNN
             int address = opcode & 0x0FFF;
             PC = address + V[0];
-            break;
+        } break;
 
-        case 0xC000: //Opcode CXNN, Vx = rand() & NN
+        case 0xC000: { //Opcode CXNN, Vx = rand() & NN
             int X = (opcode & 0x0F00) >> 8;
             V[X] = (rand() % (0xFF + 1)) & (opcode & 0x0FF);
             PC += 2;
-            break;
+        } break;
 
-        case 0xD000: //Opcode DXYN, draw(Vx, Vy, N)
+        case 0xD000: { //Opcode DXYN, draw(Vx, Vy, N)
             int X = (opcode & 0x0F00) >> 8;
             int Y = (opcode & 0x00F0) >> 4;
             int height = (opcode & 0x000F);
@@ -290,48 +302,51 @@ void Chip8::executeCycle(){
                     //Check, for each bit of pixVal, if its respective pixel should be flipped
                     if((pixVal & (0x80 >> xPos)) != 0){
                         //If the pixel is currently on, set V[F] to 1 to indicate a collision
-                        if(pixels[X+xPos][Y+yPos] == 1)
+                        if(pixels[(V[X]+xPos)%64][(V[Y]+yPos)%32] == 1)
                             V[0xF] = 1;
                         //XOR the pixel's value to toggle it on or off
-                        pixels[X+xPos][Y+yPos] ^= 1;
+                        pixels[(V[X]+xPos)%64][(V[Y]+yPos)%32] ^= 1;
                     }
                 }
             }
 
             drawFlag = true;
             PC += 2;
-            break;
+        } break;
 
-        case 0xE000: //Opcode starts with E
+        case 0xE000: { //Opcode starts with E
             switch(opcode & 0x000F){
-                case 0x000E: //EX9E, if(key() == Vx)
+                case 0x000E: { //EX9E, if(key() == Vx)
                     int X = (opcode & 0x0F00) >> 8;
                     if (key[V[X]] != 0)
                         PC += 4;
                     else
                         PC += 2;
-                    break;
-                case 0x0001: //EXA1, if(key() != Vx)
+                } break;
+                case 0x0001: { //EXA1, if(key() != Vx)
                     int X = (opcode & 0x0F00) >> 8;
                     if (key[V[X]] == 0)
                         PC += 4;
                     else
                         PC += 2;
-                    break;
-                default:
-                    std::cout << "Unknown opcode: " << opcode << std::endl;
+                } break;
+                default: {
+                    printf("\nUnknown op code: %.4X\n", opcode);
+                } exit(3);
             }
-            break;
+        } break;
 
-        case 0xF000: //Opcode starts with F
+        case 0xF000: { //Opcode starts with F
             switch(opcode & 0x00F0){ //Could check last byte, but checking third creates a more orderly list
-                case 0x0000: //FX00
+                case 0x0000: { //FX00
                     switch(opcode & 0x000F){ //Check last byte for unique entries
-                        case 0x0007: //Opcode FX07, Vx = get_delay()
+                        case 0x0007: { //Opcode FX07, Vx = get_delay()
                             int X = (opcode & 0x0F00) >> 8;
                             V[X] = delayTimer;
-                            break;
-                        case 0x000A: //Opcode FX0A, Vx = get_key()
+                            PC += 2;
+                        } break;
+                        case 0x000A: { //Opcode FX0A, Vx = get_key()
+
                             int X = (opcode & 0x0F00) >> 8;
 
                             bool keyPressed = false;
@@ -345,72 +360,80 @@ void Chip8::executeCycle(){
                             if(!keyPressed)
                                 return;
                             PC += 2;
-                            break;
+                        } break;
 
-                        default:
-                            std::cout << "Unknown opcode: " << opcode << std::endl;
-                    }    
-                case 0x0010: //F010
+                        default: {
+                            printf("\nUnknown op code: %.4X\n", opcode);
+                        } exit(3);
+                    }
+                } break;   
+
+                case 0x0010: { //F010
                     switch(opcode & 0x000F){
-                        case 0x0001: //Opcode Fx15, delay_timer(Vx)
+                        case 0x0005: { //Opcode Fx15, delay_timer(Vx)
                             int X = (opcode & 0x0F00) >> 8;
                             delayTimer = V[X];
                             PC += 2;
-                            break;
-                        case 0x0008: //Opcode FX18, sound_timer(Vx)
+                        } break;
+                        case 0x0008: { //Opcode FX18, sound_timer(Vx)
                             int X = (opcode & 0x0F00) >> 8;
                             soundTimer = V[X];
                             PC += 2;
-                            break;
-                        case 0x000E: //Opcode FX1E, I += Vx
+                        } break;
+                        case 0x000E: { //Opcode FX1E, I += Vx
                             int X = (opcode & 0x0F00) >> 8;
                             //Wikipedia states V[F] is unaffected by overflow, so it's left commented out
                             //technically 0xFFFF would overflow but memory is only 0xFFF long
                             //V[0xF] = (I + V[X] > 0xFFF)? 1 : 0; 
                             I += V[X];
                             PC += 2;
-                            break;
-                        default:
-                            std::cout << "Unknown opcode: " << opcode << std::endl;
+                        } break;
+                        default: {
+                            printf("\nUnknown op code: %.4X\n", opcode);
+                        } exit(3);
                     }
-                    break;
+                } break;
 
-                case 0x0020: //Opcode FX29, I = sprite_addr[VX]
+                case 0x0020: { //Opcode FX29, I = sprite_addr[VX]
                     int X = (opcode & 0x0F00) >> 8;
                     I = V[X] * 0x5;
                     PC += 2;
-                    break;  
+                } break;  
 
-                case 0x0030: //Opcode FX33, set_BCD(Vx)
+                case 0x0030: { //Opcode FX33, set_BCD(Vx)
                     int X = (opcode & 0x0F00) >> 8;
                     memory[I] = V[X] / 100;
                     memory[I+1] =  (V[X] / 10) % 10;
                     memory[I+2] = V[X] % 10;
                     PC += 2;
-                    break;
+                } break;
                 
-                case 0x0050: //Opcode FX55, reg_dump(Vx, &I)
+                case 0x0050: { //Opcode FX55, reg_dump(Vx, &I)
                     int X = (opcode & 0x0F00) >> 8;
                     for(int i = 0; i<=X; i++)
-                        memory[I + i] = V[X];
+                        memory[I + i] = V[i];
                     //Wikipedia states I will be left unmodified after operation
                     //I += 1;
                     PC += 2;
-                    break;
+                } break;
 
-                case 0x0060: //Opcode FX65, reg_load(Vx, &I)
+                case 0x0060: { //Opcode FX65, reg_load(Vx, &I)
                     int X = (opcode & 0x0F00) >> 8;
                     for(int i = 0; i<=X; i++)
-                        V[X] = memory[I + i];
+                        V[i] = memory[I + i];
                     //Wikipedia states I will be left unmodified after operation
                     //I += 1;
                     PC += 2;
-                    break;
-                default:
-                    std::cout << "Unknown opcode: " << opcode << std::endl;
+                } break;
+                default: {
+                    printf("\nUnknown op code: %.4X\n", opcode);
+                } exit(3);
             }
-            default:
-                std::cout << "Unknown opcode: " << opcode << std::endl;
+        } break;
+
+        default: {
+            printf("\nUnknown op code: %.4X\n", opcode);
+        } exit(3);
     }
 
     if(delayTimer > 0){
@@ -422,5 +445,9 @@ void Chip8::executeCycle(){
             //play sound
         soundTimer--;
     }
+
+    //Print statement for current opcode, left in for testing
+    // printf("PC: %04X Opcode: %04X\n", PC, opcode);
+
 }
 

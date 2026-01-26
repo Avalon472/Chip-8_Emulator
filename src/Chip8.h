@@ -5,7 +5,7 @@
 
 class Chip8{
     private:
-        uint8_t memory[0xFFF]; //4096 bytes of memory, or 0xFFF bytes
+        uint8_t memory[0x1000]; //4096 bytes of memory, or 0xFFF bytes
         uint8_t V[16]; //Registers
         uint16_t I; //Address Register
         uint16_t PC; //Program Counter
