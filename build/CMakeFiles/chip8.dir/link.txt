@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/chip8.dir/src/main.cpp.o CMakeFiles/chip8.dir/src/Chip8.cpp.o -o chip8  /usr/lib/x86_64-linux-gnu/libSDL2.so 
